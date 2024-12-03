@@ -12,3 +12,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 async def http_exception_handler(request: Request, exc: HTTPException):
     return PlainTextResponse(str(f'request {request.method} error {exc.detail}'), status_code=exc.status_code)
+
+async def base_exception_handler(request: Request, exc: Exception):
+    return PlainTextResponse(str(f'request {request.method} error {exc.__str__()}'), status_code=500)
