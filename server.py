@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from exception_handlers import *
 
 class HandleServer:
     title: str
@@ -22,5 +23,8 @@ class HandleServer:
             },
             root_path=f'/api/v{self.version}',
             routes=router.routes)
+
+        app.add_exception_handler(RequestValidationError, validation_exception_handler)
+        app.add_exception_handler(HTTPException, http_exception_handler)
 
         return app

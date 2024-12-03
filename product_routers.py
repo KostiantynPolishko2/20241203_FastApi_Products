@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Path
 from schemas import ProductSchema, ProductSchemaPublic
 from typing import Union, List, Optional, Annotated
 from responces import ProductSchemaResponse
@@ -23,6 +23,7 @@ def get_db():
         db.close()
 
 db_service = Annotated[Session, Depends(get_db)]
+model_params = Annotated[str, Path(description='weapons model', min_length=2)]
 
 @router.get('/', deprecated=True)
 async def home():
@@ -37,7 +38,7 @@ async def get_products_all(db: db_service)->list[ProductSchemaPublic]:
     return list[ProductSchemaPublic](products)
 
 @router.get('/product/{model}', status_code=status.HTTP_200_OK)
-async def get_product_by_name(model: str, db: db_service)->ProductSchemaPublic:
+async def get_product_by_name(model: model_params, db: db_service)->ProductSchemaPublic:
     product = db.query(Product).filter(Product.model == model).first()
 
     if not product:
