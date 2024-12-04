@@ -1,6 +1,6 @@
 import uvicorn
-from fastapi import FastAPI
-from product_routers import router
+from product_routers import router as product_router
+from property_routers import router as property_router
 from server import HandleServer
 
 app = HandleServer(title='Weapons')
@@ -8,4 +8,4 @@ local_host = '127.0.0.3'
 port = 8081
 
 if __name__ == '__main__':
-    uvicorn.run(app(router), host=local_host, port=port)
+    uvicorn.run(app(product_router, property_router), host=local_host, port=port)

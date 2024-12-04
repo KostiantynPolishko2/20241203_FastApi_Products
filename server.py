@@ -9,7 +9,7 @@ class HandleServer:
         self.title = title
         self.version = version
 
-    def __call__(self, router: APIRouter):
+    def __call__(self, *routers: APIRouter):
 
         app = FastAPI(
             title=f'{self.title}Api',
@@ -21,8 +21,12 @@ class HandleServer:
                 'url': 'https://itstep.dp.ua',
                 'email': 'polxs_wp31@student.itstep.org'
             },
-            root_path=f'/api/v{self.version}',
-            routes=router.routes)
+            root_path=f'/api/v{self.version}/weapons',
+            # routes=router[0].routes
+        )
+
+        for router in routers:
+            app.include_router(router)
 
         app.add_exception_handler(RequestValidationError, validation_exception_handler)
         app.add_exception_handler(HTTPException, http_exception_handler)

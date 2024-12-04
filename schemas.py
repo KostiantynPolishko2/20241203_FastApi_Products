@@ -17,3 +17,12 @@ class ProductSchemaResponse(BaseModel):
 
     def __str__(self):
         return f'{self.code}:{self}, {self.property}'
+
+
+class PropertySchema(BaseModel):
+    price: float = Field(gt=1000)
+    is_avaible: bool = Field(default=True)
+    description: str | None = Field(max_length=100)
+
+class PropertySchemaPublic(PropertySchema):
+    id: int

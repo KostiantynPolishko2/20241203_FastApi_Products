@@ -6,7 +6,7 @@ from database import db as db_service, SessionLocal
 # from product_repository import ProductRepository
 
 router = APIRouter(
-    prefix='/weapons',
+    prefix='/product',
     tags=['Http request: Product'],
     responses={status.HTTP_400_BAD_REQUEST: {'description' : 'Bad Request'}}
 )
@@ -19,10 +19,10 @@ model_params = Annotated[str, Path(description='weapons model', min_length=2)]
 #         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'product \'{model.upper()}\' is absent in db!')
 
 @router.get('/', deprecated=True)
-async def home():
-    return {'message' : 'run app products'}
+async def product_home():
+    return {'message' : 'run controller products'}
 
-@router.get('/products')
+@router.get('/all')
 async def get_products_all(db:db_service)->list[ProductSchemaPublic]:
     products = db.query(Product).all()
     if not products:
@@ -30,7 +30,7 @@ async def get_products_all(db:db_service)->list[ProductSchemaPublic]:
 
     return list[ProductSchemaPublic](products)
 
-@router.get('/product/{model}', status_code=status.HTTP_200_OK)
+@router.get('/{model}', status_code=status.HTTP_200_OK)
 async def get_product_by_name(model: model_params, db:db_service)->ProductSchemaPublic:
 
     product = db.query(Product).filter(Product.model == model.lower()).first()
@@ -39,7 +39,7 @@ async def get_product_by_name(model: model_params, db:db_service)->ProductSchema
 
     return product
 
-@router.post('/product', status_code=status.HTTP_201_CREATED)
+@router.post('/', status_code=status.HTTP_201_CREATED)
 async def add_new_product(request: ProductSchema, db:db_service)->ProductSchemaResponse:
     product = Product(model=request.model.lower(), category=request.category.lower())
     try:
@@ -49,7 +49,7 @@ async def add_new_product(request: ProductSchema, db:db_service)->ProductSchemaR
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'failed request to db!')
 
-@router.put('/product/{model}', status_code=status.HTTP_202_ACCEPTED)
+@router.put('/{model}', status_code=status.HTTP_202_ACCEPTED)
 async def update_product(model: model_params, request: ProductSchema, db: db_service)->ProductSchemaResponse:
 
     product = db.query(Product).filter(Product.model == model.lower()).first()
@@ -61,7 +61,7 @@ async def update_product(model: model_params, request: ProductSchema, db: db_ser
 
     return ProductSchemaResponse(code=status.HTTP_202_ACCEPTED, status='updated', property=f'product {str(product.model).upper()}')
 
-@router.delete('/product/{model}', status_code=status.HTTP_202_ACCEPTED)
+@router.delete('/{model}', status_code=status.HTTP_202_ACCEPTED)
 async def delete_product(model: model_params, db: db_service)->ProductSchemaResponse:
 
     product = db.query(Product).filter(Product.model == model.lower()).first()
@@ -73,7 +73,7 @@ async def delete_product(model: model_params, db: db_service)->ProductSchemaResp
 
     return ProductSchemaResponse(code=status.HTTP_202_ACCEPTED, status='deleted', property=f'product {str(product.model).upper()}')
 
-@router.patch('/product/{model}', status_code=status.HTTP_202_ACCEPTED)
+@router.patch('/{model}', status_code=status.HTTP_202_ACCEPTED)
 async def modify_product(model: model_params, request: ProductSchemaModify, db: db_service)->ProductSchemaResponse:
 
     product = db.query(Product).filter(Product.model == model.lower()).first()
