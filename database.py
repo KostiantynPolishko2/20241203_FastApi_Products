@@ -18,4 +18,4 @@ def get_db():
     finally:
         db.close()
 
-db_service = Annotated[Session, Depends(get_db)]
+db = Annotated[Session, Depends(get_db)]

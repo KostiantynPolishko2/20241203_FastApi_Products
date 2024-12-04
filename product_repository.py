@@ -1,13 +1,11 @@
 from fastapi import status, HTTPException
-from sqlalchemy.orm import Session
-from schemas import ProductSchemaPublic
 from models import Product, Base
+from sqlalchemy.ext.declarative import declarative_base
 
 class ProductRepository:
-    db: Session
 
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self, db:declarative_base):
+        self.db=db
 
     def get_all(self):
         products = self.db.query(Product).all()
