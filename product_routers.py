@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, HTTPException, Path, Depends
 from sqlalchemy.orm import joinedload
 
 from schemas import (ProductSchema, ProductSchemaPublic, ProductSchemaResponse, ProductSchemaModify,
-                     ProductSchemaCard, ProductSchemaProperty)
+                     ProductSchemaCard, ProductSchemaProperty, PropertySchema)
 from typing import Annotated
 from models import Product, Property
 from database import db as db_service
@@ -42,9 +42,15 @@ async def get_product_card_by_name(model: model_params, db:db_service)->ProductS
 
     return ProductSchemaCard.from_property(model=product.model, _property=product.property)
 
+def map_property_orm_schema_to_sql(_property: PropertySchema, orm_model_class: type[Property])->Property:
+    return orm_model_class(**_property.model_dump())
+
 @router.post('/', status_code=status.HTTP_201_CREATED)
-async def add_new_product(request: ProductSchema, db:db_service)->ProductSchemaResponse:
-    product = Product(model=request.model.lower(), category=request.category.lower())
+async def add_new_product(request: ProductSchemaProperty, db:db_service)->ProductSchemaResponse:
+
+    _property = map_property_orm_schema_to_sql(request.property, Property)
+    product = Product(model=request.model.lower(), category=request.category.lower(), property=_property)
+
     try:
         db.add(product)
         db.commit()
