@@ -1,11 +1,12 @@
 from fastapi import APIRouter, status, HTTPException, Path, Depends
 from sqlalchemy.orm import joinedload
-
 from schemas import (ProductSchema, ProductSchemaPublic, ProductSchemaResponse, ProductSchemaModify,
-                     ProductSchemaCard, ProductSchemaProperty, PropertySchema)
+                     ProductSchemaCard, ProductSchemaProperty, PropertySchemaInput)
 from typing import Annotated
-from models import Product, Property
+from models import Product
 from database import db as db_service
+import httpx
+# from property_routers import add_new_property
 # from product_repository import ProductRepository
 
 router = APIRouter(
@@ -42,21 +43,23 @@ async def get_product_card_by_name(model: model_params, db:db_service)->ProductS
 
     return ProductSchemaCard.from_property(model=product.model, _property=product.property)
 
-def map_property_orm_schema_to_sql(_property: PropertySchema, orm_model_class: type[Property])->Property:
-    return orm_model_class(**_property.model_dump())
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
 async def add_new_product(request: ProductSchemaProperty, db:db_service)->ProductSchemaResponse:
 
-    _property = map_property_orm_schema_to_sql(request.property, Property)
-    product = Product(model=request.model.lower(), category=request.category.lower(), property=_property)
+    product = Product(model=request.model.lower(), category=request.category.lower())
 
-    try:
-        db.add(product)
-        db.commit()
-        return ProductSchemaResponse(code=status.HTTP_201_CREATED, status='created', property=f'product {str(product.model).upper()}')
-    except:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'failed request to db!')
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+    request_property = PropertySchemaInput.from_property(request.property, product.id)
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url='http://127.0.0.3:8081/api/v1/weapons/property/',
+                                     json=request_property.dict(),
+                                     )
+
+    return response.json()
 
 @router.put('/{model}', status_code=status.HTTP_202_ACCEPTED)
 async def update_product(model: model_params, request: ProductSchema, db: db_service)->ProductSchemaResponse:
