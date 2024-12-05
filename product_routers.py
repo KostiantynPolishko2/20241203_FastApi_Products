@@ -1,7 +1,10 @@
 from fastapi import APIRouter, status, HTTPException, Path, Depends
-from schemas import ProductSchema, ProductSchemaPublic, ProductSchemaResponse, ProductSchemaModify
+from sqlalchemy.orm import joinedload
+
+from schemas import (ProductSchema, ProductSchemaPublic, ProductSchemaResponse, ProductSchemaModify,
+                     ProductSchemaCard, ProductSchemaProperty)
 from typing import Annotated
-from models import Product
+from models import Product, Property
 from database import db as db_service
 # from product_repository import ProductRepository
 
@@ -31,13 +34,13 @@ async def get_products_all(db:db_service)->list[ProductSchemaPublic]:
     return list[ProductSchemaPublic](products)
 
 @router.get('/{model}', status_code=status.HTTP_200_OK)
-async def get_product_by_name(model: model_params, db:db_service)->ProductSchemaPublic:
+async def get_product_card_by_name(model: model_params, db:db_service)->ProductSchemaCard:
 
-    product = db.query(Product).filter(Product.model == model.lower()).first()
+    product = db.query(Product).options(joinedload(Product.property)).filter(Product.model == model.lower()).first()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'product \'{model.upper()}\' is absent in db!')
 
-    return product
+    return ProductSchemaCard.from_property(model=product.model, _property=product.property)
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
 async def add_new_product(request: ProductSchema, db:db_service)->ProductSchemaResponse:

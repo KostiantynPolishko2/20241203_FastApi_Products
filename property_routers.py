@@ -14,7 +14,7 @@ router = APIRouter(
 async def property_home():
     return {'message': 'run controller products'}
 
-@router.post('/', status_code=status.HTTP_201_CREATED)
+@router.post('/', status_code=status.HTTP_201_CREATED, deprecated=True)
 async def add_new_property(request: PropertySchema, db: Session=Depends(get_db))->ProductSchemaResponse:
 
     _property = Property(price=request.price, is_available=request.is_available, description=request.description)
