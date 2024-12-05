@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, HTTPException, Path, Depends
 from schemas import ProductSchema, ProductSchemaPublic, ProductSchemaResponse, ProductSchemaModify
 from typing import Annotated
 from models import Product
-from database import db as db_service, SessionLocal
+from database import db as db_service
 # from product_repository import ProductRepository
 
 router = APIRouter(
