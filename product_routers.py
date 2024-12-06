@@ -54,12 +54,15 @@ async def add_new_product(request: ProductSchemaProperty, db:db_service)->Produc
     db.refresh(product)
     request_property = PropertySchemaInput.from_property(request.property, product.id)
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url='http://127.0.0.3:8081/api/v1/weapons/property/',
-                                     json=request_property.dict(),
-                                     )
-
-    return response.json()
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url='http://127.0.0.3:8081/api/v1/weapons/property/',
+                                         json=request_property.dict(), )
+        return response.json()
+    except ():
+        db.delete(product)
+        db.commit()
+        return ProductSchemaResponse(code=status.HTTP_400_BAD_REQUEST, status='not added', property=f'product {str(product.model).upper()}')
 
 @router.put('/{model}', status_code=status.HTTP_202_ACCEPTED)
 async def update_product(model: model_params, request: ProductSchema, db: db_service)->ProductSchemaResponse:
