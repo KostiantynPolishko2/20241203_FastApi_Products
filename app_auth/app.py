@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Depends, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from typing import Annotated
+from typing import Annotated, Dict
 from deps import get_current_active_user
-from schemas import User, Token, UserOut, UserInDB, UserAuth
+from schemas import User, Token, UserOut, UserInDB, UserAuth, CustomOAuth2PasswordRequestForm
 from infrastructures import auth_exceptions, create_user_exceptions
 from jwt_const import *
 from utils import authenticate_user, create_access_token, get_password_hash
@@ -19,7 +19,7 @@ async def docs():
     return RedirectResponse(url='/docs')
 
 @app.post('/signup', summary="register new user", status_code=status.HTTP_201_CREATED)
-async def create_user(data: UserAuth)->UserOut:
+async def create_user(data: UserAuth)->type({int: UserOut}):
 
     # querying database to check if user already exist
     user = db.get(data.username, None)
@@ -29,16 +29,17 @@ async def create_user(data: UserAuth)->UserOut:
     user = UserInDB(
         username=data.username,
         email=data.email,
-        disabled=data.disabled,
+        is_disabled=data.is_disabled,
         id=uuid4(),
         hashed_password=get_password_hash(data.password)
     )
-    db[data.username] = user    # saving user to database
+    # saving user to database
+    db[data.username] = user
 
-    return user
+    return {status.HTTP_201_CREATED: UserOut(**user.model_dump(exclude_unset=False))}
 
 @app.post("/token")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()])->Token:
+async def login(form_data: Annotated[CustomOAuth2PasswordRequestForm, Depends()])->Token:
     user = authenticate_user(auth_db, form_data.username, form_data.password)
     if not user:
         raise auth_exceptions
