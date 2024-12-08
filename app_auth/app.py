@@ -1,11 +1,14 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import RedirectResponse
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from typing import Annotated, Dict
 from deps import get_current_active_user
-from schemas import User, UserInDB
-from auth import auth_db
-from utils import fake_hash_password
+from schemas import User, Token
+from infrastructures import auth_exceptions
+from jwt_const import *
+from utils import authenticate_user, create_access_token
+from auth_db import auth_db
+from datetime import timedelta
 
 app = FastAPI()
 
@@ -14,22 +17,17 @@ async def docs():
     return RedirectResponse(url='/docs')
 
 @app.post("/token")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user_dict = auth_db.get(form_data.username)
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    user = UserInDB(**user_dict)
-    hashed_password = fake_hash_password(form_data.password)
-    if not hashed_password == user.hashed_password:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()])->Token:
+    user = authenticate_user(auth_db, form_data.username, form_data.password)
+    if not user:
+        raise auth_exceptions
 
-    return {"access_token": user.username, "token_type": "bearer"}
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+
+    return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/user/{name}")
-async def read_user(name:str, current_user: Annotated[User, Depends(get_current_active_user)])->dict:
-    return {name: current_user}
-
-@app.post("/user/{name}")
-async def create_user(name:str, current_user: Annotated[User, Depends(get_current_active_user)])->dict:
-    return {name: current_user}
+@app.get("/user/{model}")
+async def read_user(model:str, current_user: Annotated[User, Depends(get_current_active_user)])->str:
+    return f'read product model {model}'
