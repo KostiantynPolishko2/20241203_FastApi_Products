@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends
 from fastapi.responses import RedirectResponse
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from typing import Annotated, Dict
+from fastapi.security import OAuth2PasswordRequestForm
+from typing import Annotated
 from deps import get_current_active_user
 from schemas import User, Token
 from infrastructures import auth_exceptions
@@ -29,5 +29,5 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()])->Tok
 
 
 @app.get("/user/{model}")
-async def read_user(model:str, current_user: Annotated[User, Depends(get_current_active_user)])->str:
+async def read_user(model:str, authorization: Annotated[User, Depends(get_current_active_user)])->str:
     return f'read product model {model}'
