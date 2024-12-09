@@ -21,3 +21,8 @@ none_user_exceptions = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
     detail="User with this nane did not found"
 )
+
+add_user_exceptions = HTTPException(
+    status_code=status.HTTP_406_NOT_ACCEPTABLE,
+    detail="failed to add new username to db"
+)
