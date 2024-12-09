@@ -12,12 +12,16 @@ from uuid import uuid4
 from database import get_db
 from sqlalchemy.orm import Session
 from models import UserModel
+from auth_repository import AuthRepository
 
 router = APIRouter(
     prefix='/user',
     tags=['Http request: User'],
     responses={status.HTTP_400_BAD_REQUEST: {'description' : 'Bad Request'}}
 )
+
+def get_auth_repository(db: Annotated[Session, Depends(get_db)]):
+    yield AuthRepository(db)
 
 def map_property_orm_schema_to_sql(request: UserModel, orm_model_class: type[UserInDB])->UserInDB:
     return orm_model_class(**request.model_dump())
@@ -60,6 +64,9 @@ async def login(form_data: Annotated[CustomOAuth2PasswordRequestForm, Depends()]
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/user/{model}")
-async def read_user(model:str, authorization: Annotated[User, Depends(get_current_active_user)])->str:
-    return f'read product model {model}'
+@router.get("/repo/{username}", deprecated=True)
+async def get_username(username: str, authorization: Annotated[User, Depends(get_current_active_user)], auth_repository: Annotated[AuthRepository, Depends(get_auth_repository)]):
+    if len(username) <= 5:
+        raise ValueError('Argument cannot be null')
+
+    return auth_repository.get_user(username)

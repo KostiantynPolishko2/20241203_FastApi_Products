@@ -16,3 +16,8 @@ create_user_exceptions = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
     detail="User with this email already exist"
 )
+
+none_user_exceptions = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="User with this nane did not found"
+)
