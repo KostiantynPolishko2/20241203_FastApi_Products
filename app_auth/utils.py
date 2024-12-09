@@ -1,29 +1,28 @@
-from schemas import UserInDB
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 import jwt
 from jwt_const import *
+from sqlalchemy.orm import Session
+from models import UserModel
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str)->bool:
-    if plain_password.startswith('secret'):
-        return f'fake_hashed_{plain_password}' == hashed_password
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str)->str:
     return pwd_context.hash(password)
 
-def get_user(db: dict, username: str)->UserInDB:
-    if username in db:
-        user_in = db[username]
-        return UserInDB(**user_in.dict())
+def get_user(username: str, db: Session)->UserModel:
+    user = db.query(UserModel).filter(UserModel.username == username.lower()).first()
+    if user is not None:
+        return user
 
-def authenticate_user(auth_db: dict, username: str, password: str)->UserInDB | bool:
-    user = get_user(auth_db, username)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
+
+def authenticate_user(username: str, password: str, db: Session)->UserModel | bool:
+    user: UserModel = get_user(username, db)
+
+    if not user or not verify_password(password, user.hashed_password):
         return False
     return user
 

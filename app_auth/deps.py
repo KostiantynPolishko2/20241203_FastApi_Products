@@ -7,11 +7,12 @@ from jwt_const import *
 import jwt
 from jwt.exceptions import InvalidTokenError
 from utils import get_user
-from auth_db import auth_db
+from database import get_db
+from sqlalchemy.orm import Session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db:Annotated[Session, Depends(get_db)]):
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -24,7 +25,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     except InvalidTokenError:
         raise credentials_exception
 
-    user = get_user(auth_db, username=token_data.username)
+    user = get_user(token_data.username, db)
     if user is None:
         raise credentials_exception
     return user

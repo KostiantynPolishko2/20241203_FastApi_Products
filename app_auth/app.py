@@ -7,10 +7,8 @@ from schemas import *
 from infrastructures import auth_exceptions, create_user_exceptions
 from jwt_const import *
 from utils import authenticate_user, create_access_token, get_password_hash
-from auth_db import auth_db
 from datetime import timedelta
 from uuid import uuid4
-# from auth_db import auth_db as db
 from database import get_db
 from sqlalchemy.orm import Session
 from models import UserModel
@@ -47,8 +45,8 @@ async def create_user(request: UserAuth, db: Annotated[Session, Depends(get_db)]
     return ProductSchemaResponse(code=status.HTTP_201_CREATED, status='created', property=f'username: {new_user.username}')
 
 @app.post("/token")
-async def login(form_data: Annotated[CustomOAuth2PasswordRequestForm, Depends()])->Token:
-    user = authenticate_user(auth_db, form_data.username, form_data.password)
+async def login(form_data: Annotated[CustomOAuth2PasswordRequestForm, Depends()], db: Annotated[Session, Depends(get_db)])->Token:
+    user: UserModel = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise auth_exceptions
 
