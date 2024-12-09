@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from deps import get_current_active_user
 from schemas import *
 from infrastructures import auth_exceptions, add_user_exceptions
-from jwt_const import *
+from config import *
 from utils import authenticate_user, create_access_token
 from datetime import timedelta
 from database import get_db

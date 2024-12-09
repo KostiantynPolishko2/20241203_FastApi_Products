@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 import jwt
-from jwt_const import *
+from config import *
 from sqlalchemy.orm import Session
 from models import UserModel
 

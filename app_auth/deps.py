@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
 from schemas import User, TokenData
 from infrastructures import *
-from jwt_const import *
+from config import *
 import jwt
 from jwt.exceptions import InvalidTokenError
 from utils import get_user
