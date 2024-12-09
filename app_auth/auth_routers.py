@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import RedirectResponse
 # from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
@@ -13,16 +13,20 @@ from database import get_db
 from sqlalchemy.orm import Session
 from models import UserModel
 
-app = FastAPI()
+router = APIRouter(
+    prefix='/user',
+    tags=['Http request: User'],
+    responses={status.HTTP_400_BAD_REQUEST: {'description' : 'Bad Request'}}
+)
 
 def map_property_orm_schema_to_sql(request: UserModel, orm_model_class: type[UserInDB])->UserInDB:
     return orm_model_class(**request.model_dump())
 
-@app.get('/', response_class=RedirectResponse, include_in_schema=False)
+@router.get('/', response_class=RedirectResponse, include_in_schema=False)
 async def docs():
     return RedirectResponse(url='/docs')
 
-@app.post('/signup', summary="register new user", status_code=status.HTTP_201_CREATED)
+@router.post('/signup', summary="register new user", status_code=status.HTTP_201_CREATED)
 async def create_user(request: UserAuth, db: Annotated[Session, Depends(get_db)])->ProductSchemaResponse:
 
     # querying database to check if user already exist
@@ -44,7 +48,7 @@ async def create_user(request: UserAuth, db: Annotated[Session, Depends(get_db)]
 
     return ProductSchemaResponse(code=status.HTTP_201_CREATED, status='created', property=f'username: {new_user.username}')
 
-@app.post("/token")
+@router.post("/token")
 async def login(form_data: Annotated[CustomOAuth2PasswordRequestForm, Depends()], db: Annotated[Session, Depends(get_db)])->Token:
     user: UserModel = authenticate_user(form_data.username, form_data.password, db)
     if not user:
@@ -56,6 +60,6 @@ async def login(form_data: Annotated[CustomOAuth2PasswordRequestForm, Depends()]
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/user/{model}")
+@router.get("/user/{model}")
 async def read_user(model:str, authorization: Annotated[User, Depends(get_current_active_user)])->str:
     return f'read product model {model}'

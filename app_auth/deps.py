@@ -10,7 +10,7 @@ from utils import get_user
 from database import get_db
 from sqlalchemy.orm import Session
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/user/token')
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db:Annotated[Session, Depends(get_db)]):
 
