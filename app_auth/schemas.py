@@ -9,14 +9,14 @@ class User(BaseModel):
     is_disabled: bool=Field(default=False, description="users' status")
 
 class UserAuth(User):
-    password: str
+    password: str = Field(min_length=5, max_length=12, description='login')
 
 class UserInDB(User):
-    id: UUID
+    guid: UUID
     hashed_password: str
 
 class UserOut(BaseModel):
-    id: UUID
+    guid: UUID
     email: str | None = None
 
 class Token(BaseModel):
@@ -35,3 +35,12 @@ class CustomOAuth2PasswordRequestForm:
     ):
         self.username = username
         self.password = password
+
+#===================schema entities of Response===================#
+class ProductSchemaResponse(BaseModel):
+    code: int
+    status: str
+    property: str
+
+    def __str__(self):
+        return f'{self.code}:{self}, {self.property}'

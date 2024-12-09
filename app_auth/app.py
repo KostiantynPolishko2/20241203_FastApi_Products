@@ -1,42 +1,50 @@
 from fastapi import FastAPI, Depends, status
 from fastapi.responses import RedirectResponse
-from fastapi.security import OAuth2PasswordRequestForm
-from typing import Annotated, Dict
+# from fastapi.security import OAuth2PasswordRequestForm
+from typing import Annotated
 from deps import get_current_active_user
-from schemas import User, Token, UserOut, UserInDB, UserAuth, CustomOAuth2PasswordRequestForm
+from schemas import *
 from infrastructures import auth_exceptions, create_user_exceptions
 from jwt_const import *
 from utils import authenticate_user, create_access_token, get_password_hash
 from auth_db import auth_db
 from datetime import timedelta
 from uuid import uuid4
-from auth_db import auth_db as db
+# from auth_db import auth_db as db
+from database import get_db
+from sqlalchemy.orm import Session
+from models import UserModel
 
 app = FastAPI()
+
+def map_property_orm_schema_to_sql(request: UserModel, orm_model_class: type[UserInDB])->UserInDB:
+    return orm_model_class(**request.model_dump())
 
 @app.get('/', response_class=RedirectResponse, include_in_schema=False)
 async def docs():
     return RedirectResponse(url='/docs')
 
 @app.post('/signup', summary="register new user", status_code=status.HTTP_201_CREATED)
-async def create_user(data: UserAuth)->type({int: UserOut}):
+async def create_user(request: UserAuth, db: Annotated[Session, Depends(get_db)])->ProductSchemaResponse:
 
     # querying database to check if user already exist
-    user = db.get(data.username, None)
+    user = db.query(UserModel).filter(UserModel.username == request.username.lower()).first()
     if user is not None:
             raise create_user_exceptions
 
-    user = UserInDB(
-        username=data.username,
-        email=data.email,
-        is_disabled=data.is_disabled,
-        id=uuid4(),
-        hashed_password=get_password_hash(data.password)
+    new_user = UserModel(
+        username=request.username,
+        email=request.email,
+        is_disabled=request.is_disabled,
+        guid=uuid4(),
+        hashed_password=get_password_hash(request.password)
     )
-    # saving user to database
-    db[data.username] = user
 
-    return {status.HTTP_201_CREATED: UserOut(**user.model_dump(exclude_unset=False))}
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return ProductSchemaResponse(code=status.HTTP_201_CREATED, status='created', property=f'username: {new_user.username}')
 
 @app.post("/token")
 async def login(form_data: Annotated[CustomOAuth2PasswordRequestForm, Depends()])->Token:
