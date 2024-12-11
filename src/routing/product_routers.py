@@ -1,13 +1,13 @@
-from fastapi import APIRouter, status, HTTPException, Path, Depends
+from fastapi import APIRouter, status, HTTPException, Path
 from sqlalchemy.orm import joinedload
-from schemas import (ProductSchema, ProductSchemaPublic, ProductSchemaResponse, ProductSchemaModify,
-                     ProductSchemaCard, ProductSchemaProperty, PropertySchemaInput)
+from schemas.product_schema import (ProductSchema, ProductSchemaPublic, ProductSchemaModify,
+                     ProductSchemaCard, ProductSchemaProperty)
+from schemas.property_schema import PropertySchemaInput
+from schemas.response_schema import ResponseSchema
 from typing import Annotated
-from models import Product
-from database import db as db_service
+from models.product import Product
+from depends import db as db_service
 import httpx
-# from property_routers import add_new_property
-# from product_repository import ProductRepository
 
 router = APIRouter(
     prefix='/product',
@@ -16,11 +16,6 @@ router = APIRouter(
 )
 
 model_params = Annotated[str, Path(description='weapons model', min_length=2)]
-
-# def find_product_by_name(model: str, db: SessionLocal):
-#     product = db.query(Product).filter(Product.model == model).first()
-#     if not product:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'product \'{model.upper()}\' is absent in db!')
 
 @router.get('/', deprecated=True)
 async def product_home():
@@ -45,7 +40,7 @@ async def get_product_card_by_name(model: model_params, db:db_service)->ProductS
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
-async def add_new_product(request: ProductSchemaProperty, db:db_service)->ProductSchemaResponse:
+async def add_new_product(request: ProductSchemaProperty, db:db_service)->ResponseSchema:
 
     product = Product(model=request.model.lower(), category=request.category.lower())
 
@@ -62,10 +57,10 @@ async def add_new_product(request: ProductSchemaProperty, db:db_service)->Produc
     except ():
         db.delete(product)
         db.commit()
-        return ProductSchemaResponse(code=status.HTTP_400_BAD_REQUEST, status='not added', property=f'product {str(product.model).upper()}')
+        return ResponseSchema(code=status.HTTP_400_BAD_REQUEST, status='not added', property=f'product {str(product.model).upper()}')
 
 @router.put('/{model}', status_code=status.HTTP_202_ACCEPTED)
-async def update_product(model: model_params, request: ProductSchema, db: db_service)->ProductSchemaResponse:
+async def update_product(model: model_params, request: ProductSchema, db: db_service)->ResponseSchema:
 
     product = db.query(Product).filter(Product.model == model.lower()).first()
     if not product:
@@ -74,10 +69,10 @@ async def update_product(model: model_params, request: ProductSchema, db: db_ser
     db.query(Product).filter(Product.model == model).update(request.model_dump(exclude_unset=True))
     db.commit()
 
-    return ProductSchemaResponse(code=status.HTTP_202_ACCEPTED, status='updated', property=f'product {str(product.model).upper()}')
+    return ResponseSchema(code=status.HTTP_202_ACCEPTED, status='updated', property=f'product {str(product.model).upper()}')
 
 @router.delete('/{model}', status_code=status.HTTP_202_ACCEPTED)
-async def delete_product(model: model_params, db: db_service)->ProductSchemaResponse:
+async def delete_product(model: model_params, db: db_service)->ResponseSchema:
 
     product = db.query(Product).filter(Product.model == model.lower()).first()
     if not product:
@@ -86,10 +81,10 @@ async def delete_product(model: model_params, db: db_service)->ProductSchemaResp
     db.delete(product)
     db.commit()
 
-    return ProductSchemaResponse(code=status.HTTP_202_ACCEPTED, status='deleted', property=f'product {str(product.model).upper()}')
+    return ResponseSchema(code=status.HTTP_202_ACCEPTED, status='deleted', property=f'product {str(product.model).upper()}')
 
 @router.patch('/{model}', status_code=status.HTTP_202_ACCEPTED)
-async def modify_product(model: model_params, request: ProductSchemaModify, db: db_service)->ProductSchemaResponse:
+async def modify_product(model: model_params, request: ProductSchemaModify, db: db_service)->ResponseSchema:
 
     product = db.query(Product).filter(Product.model == model.lower()).first()
     if not product:
@@ -100,11 +95,4 @@ async def modify_product(model: model_params, request: ProductSchemaModify, db: 
         setattr(product, key, value)
     db.commit()
 
-    return ProductSchemaResponse(code=status.HTTP_202_ACCEPTED, status='modified', property=f'product {str(product.model).upper()}')
-
-# def get_product_repository()->ProductRepository:
-#     return ProductRepository(db_service)
-#
-# @router.get('/products-db', status_code=status.HTTP_200_OK)
-# async def get_products_all_db(product_repository: Annotated[ProductRepository, Depends(get_product_repository)]):
-#     return product_repository.get_all()
+    return ResponseSchema(code=status.HTTP_202_ACCEPTED, status='modified', property=f'product {str(product.model).upper()}')

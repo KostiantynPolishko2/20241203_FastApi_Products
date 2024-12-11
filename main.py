@@ -1,7 +1,7 @@
 import uvicorn
-from product_routers import router as product_router
-from property_routers import router as property_router
-from server import HandleServer
+from routing.product_routers import router as product_router
+from routing.property_routers import router as property_router
+from src.server import HandleServer
 
 app = HandleServer(title='Weapons')
 local_host = '127.0.0.3'

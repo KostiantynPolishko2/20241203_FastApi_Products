@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status, HTTPException, Depends
-from schemas import PropertySchemaInput, ProductSchemaResponse, PropertySchema
-from models import Property
-from database import db as db_service, get_db
+from schemas.property_schema import PropertySchemaInput, PropertySchema
+from schemas.response_schema import ResponseSchema
+from models.property import Property
+from depends import get_db
 from sqlalchemy.orm import Session
 
 router = APIRouter(
@@ -18,20 +19,17 @@ def map_property_orm_schema_to_sql(_property: PropertySchemaInput, orm_model_cla
     return orm_model_class(**_property.model_dump())
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
-async def add_new_property(request: PropertySchemaInput, db: Session=Depends(get_db))->ProductSchemaResponse:
-
-    # if request.description == 'string':
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='property is unacceptable')
+async def add_new_property(request: PropertySchemaInput, db: Session=Depends(get_db))->ResponseSchema:
 
     _property = map_property_orm_schema_to_sql(request, Property)
 
     db.add(_property)
     db.commit()
 
-    return ProductSchemaResponse(code=status.HTTP_201_CREATED, status='created', property=f'property price {_property.price}')
+    return ResponseSchema(code=status.HTTP_201_CREATED, status='created', property=f'property price {_property.price}')
 
 @router.patch('/{id}', status_code=status.HTTP_202_ACCEPTED)
-async def modify_property(id: int, request: PropertySchema, db: Session=Depends(get_db))->ProductSchemaResponse:
+async def modify_property(id: int, request: PropertySchema, db: Session=Depends(get_db))->ResponseSchema:
 
     _property = db.query(Property).filter(Property.id == id).first()
     if not _property:
@@ -42,4 +40,4 @@ async def modify_property(id: int, request: PropertySchema, db: Session=Depends(
         setattr(_property, key, value)
     db.commit()
 
-    return ProductSchemaResponse(code=status.HTTP_202_ACCEPTED, status='updated', property=f'property id {_property.id}')
+    return ResponseSchema(code=status.HTTP_202_ACCEPTED, status='updated', property=f'property id {_property.id}')

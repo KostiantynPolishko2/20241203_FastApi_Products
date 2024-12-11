@@ -1,5 +1,5 @@
 from fastapi import status, HTTPException
-from models import Product, Base
+from models.product import Product
 from sqlalchemy.ext.declarative import declarative_base
 
 class ProductRepository:
