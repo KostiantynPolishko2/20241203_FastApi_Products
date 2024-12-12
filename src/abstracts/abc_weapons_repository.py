@@ -1,7 +1,23 @@
 from abc import ABC, abstractmethod
-from schemas.product_schema import ProductSchemaPublic
+from models.product import Product
+from models.property import Property
 
 class AbcWeaponsRepository(ABC):
     @abstractmethod
-    async def get_all(self):
+    def get_all(self):
+        raise NotImplementedError
+
+    def get_product_card_by_name(self, model: str):
+        raise NotImplementedError
+
+    def delete_product_by_name(self, model: str):
+        raise NotImplementedError
+
+    def add_new_product(self, product: Product)->int:
+        raise NotImplementedError
+
+    def delete_product(self, product: Product):
+        raise NotImplementedError
+
+    def add_new_property(self, _property: Property):
         raise NotImplementedError
