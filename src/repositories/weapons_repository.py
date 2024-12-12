@@ -48,7 +48,6 @@ class SqlDbWeaponsRepository(AbcWeaponsRepository):
 
     def add_new_property(self, _property: Property):
         self.db.add(_property)
-        self.db.commit()
-        self.db.refresh(_property)
-        # if _property.id:
+        # if _property.product_id:
         #     raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='failed add property')
+        self.db.commit()
