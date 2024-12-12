@@ -1,15 +1,17 @@
-from fastapi import status, HTTPException
 from models.product import Product
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
+from infrastructures.product_exception import *
+from abstracts.abc_product_repository import AbcProductRepository
+from schemas.product_schema import ProductSchemaPublic
 
-class ProductRepository:
+class ProductRepositorySqlDbWeapons(AbcProductRepository):
 
-    def __init__(self, db:declarative_base):
+    def __init__(self, db: Session):
         self.db=db
 
-    def get_all(self):
+    def get_all(self)->list[ProductSchemaPublic]:
         products = self.db.query(Product).all()
         if not products:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'table products is empty in db!')
+            raise products_empty
 
-        return products
+        return list[ProductSchemaPublic](products)
