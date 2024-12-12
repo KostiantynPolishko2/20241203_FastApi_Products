@@ -4,6 +4,7 @@ from infrastructures.product_exception import *
 from infrastructures.weapons_exception import weaponsException404
 from abstracts.abc_weapons_repository import AbcWeaponsRepository
 from models.property import Property
+from schemas.product_schema import ProductSchema, ProductSchemaModify
 
 class SqlDbWeaponsRepository(AbcWeaponsRepository):
 
@@ -50,4 +51,24 @@ class SqlDbWeaponsRepository(AbcWeaponsRepository):
         self.db.add(_property)
         # if _property.product_id:
         #     raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='failed add property')
+        self.db.commit()
+
+    def update_product(self, model: str, request: ProductSchema):
+        product = self.db.query(Product).filter(Product.model == model).first()
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f'product \'{model.upper()}\' is absent in db!')
+
+        self.db.query(Product).filter(Product.model == model).update(request.model_dump(exclude_unset=True))
+        self.db.commit()
+
+    def modify_product(self, model: str, request: ProductSchemaModify):
+        product = self.db.query(Product).filter(Product.model == model).first()
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f'product \'{model.upper()}\' is absent in db!')
+
+        request_update = request.model_dump(exclude_unset=True)
+        for key, value in request_update.items():
+            setattr(product, key, value)
         self.db.commit()

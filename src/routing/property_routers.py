@@ -1,12 +1,10 @@
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, Depends
 from fastapi.responses import RedirectResponse
-from sqlalchemy.sql.annotation import Annotated
 
-from schemas.property_schema import PropertySchemaInput, PropertySchema
+from schemas.property_schema import PropertySchemaInput
 from schemas.response_schema import ResponseSchema
 from models.property import Property
-from depends import get_db, get_property_service
-from sqlalchemy.orm import Session
+from depends import get_property_service
 from services.property_service import PropertyService
 
 router = APIRouter(

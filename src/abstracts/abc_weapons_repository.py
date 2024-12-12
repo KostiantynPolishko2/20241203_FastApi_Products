@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from models.product import Product
 from models.property import Property
+from schemas.product_schema import ProductSchema, ProductSchemaModify
 
 class AbcWeaponsRepository(ABC):
     @abstractmethod
@@ -20,4 +21,10 @@ class AbcWeaponsRepository(ABC):
         raise NotImplementedError
 
     def add_new_property(self, _property: Property):
+        raise NotImplementedError
+
+    def update_product(self, model: str, request: ProductSchema):
+        raise NotImplementedError
+
+    def modify_product(self, model: str, request: ProductSchemaModify):
         raise NotImplementedError
