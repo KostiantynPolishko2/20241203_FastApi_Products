@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status, HTTPException, Path
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import joinedload
 from schemas.product_schema import (ProductSchema, ProductSchemaPublic, ProductSchemaModify,
                      ProductSchemaCard, ProductSchemaProperty)
@@ -17,9 +18,9 @@ router = APIRouter(
 
 model_params = Annotated[str, Path(description='weapons model', min_length=2)]
 
-@router.get('/', deprecated=True)
-async def product_home():
-    return {'message' : 'run controller products'}
+@router.get('/', response_class=RedirectResponse, include_in_schema=False)
+async def docs():
+    return RedirectResponse(url='/docs')
 
 @router.get('/all')
 async def get_products_all(db:db_service)->list[ProductSchemaPublic]:
