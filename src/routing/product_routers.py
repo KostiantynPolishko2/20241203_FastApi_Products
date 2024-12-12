@@ -8,11 +8,14 @@ from schemas.property_schema import PropertySchemaInput
 from schemas.response_schema import ResponseSchema
 from typing import Annotated
 from models.product import Product
-from depends import get_db, get_product_repository
+from depends import get_db, get_product_service
 import httpx
 
-from abstracts.abc_product_repository import *
+from abstracts.abc_weapons_repository import *
 from repositories.product_repository import *
+
+from services.product_service import ProductService
+
 
 router = APIRouter(
     prefix='/product',
@@ -27,12 +30,8 @@ async def docs():
     return RedirectResponse(url='/docs')
 
 @router.get('/all')
-async def get_products_all(product_repository: Annotated[ProductRepositorySqlDbWeapons, Depends(get_product_repository)])->list[ProductSchemaPublic]:
-    products = product_repository.get_all()
-    if not products:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'table products is empty in db!')
-
-    return list[ProductSchemaPublic](products)
+async def get_products_all(product_service: Annotated[ProductService, Depends(get_product_service)])->list[ProductSchemaPublic]:
+    return product_service.get_all()
 
 # @router.get('/{model}', status_code=status.HTTP_200_OK)
 # async def get_product_card_by_name(model: model_params, db:db_service)->ProductSchemaCard:
