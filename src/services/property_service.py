@@ -1,6 +1,7 @@
 from models.property import Property
 from abstracts.abc_property_repository import AbcPropertyRepository
 from schemas.property_schema import PropertySchema
+from schemas.property_schema_dto import PropertySchemaDto
 
 class PropertyService:
 
@@ -12,3 +13,18 @@ class PropertyService:
 
     def s_modify_property(self, id: int, request: PropertySchema):
         self.property_repository.r_modify_property(id, request)
+
+    def s_get_all_available(self, is_available: bool):
+        props: list[type[Property]] = self.property_repository.r_get_all()
+        props_dto: list[PropertySchemaDto] = []
+
+        if is_available:
+            for prop in props:
+                if prop.is_available:
+                    props_dto.append(PropertySchemaDto(price=prop.price, available='yes' if prop.is_available else 'no', description=prop.description))
+            return props_dto
+
+        for prop in props:
+            props_dto.append(PropertySchemaDto(price=prop.price, available='yes' if prop.is_available else 'no', description=prop.description))
+
+        return props_dto

@@ -2,10 +2,12 @@ from fastapi import APIRouter, status, Depends, Path
 from fastapi.responses import RedirectResponse
 from schemas.property_schema import PropertySchemaInput, PropertySchema
 from schemas.response_schema import ResponseSchema
+from schemas.property_schema_dto import PropertySchemaDto
 from models.property import Property
 from depends import get_property_service
 from services.property_service import PropertyService
 from typing import Annotated
+from schemas.enum_schema import EnumAvailable
 
 router = APIRouter(
     prefix='/property',
@@ -21,6 +23,12 @@ def map_property_orm_schema_to_sql(_property: PropertySchemaInput, orm_model_cla
 @router.get('/', response_class=RedirectResponse, include_in_schema=False)
 def docs():
     return RedirectResponse(url='/docs')
+
+@router.get('/all')
+async def get_properties_all(is_available: EnumAvailable, service: PropertyService = Depends(get_property_service))->list[PropertySchemaDto]:
+   if is_available.value == 'yes':
+    return service.s_get_all_available(True)
+   return service.s_get_all_available(False)
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
 async def add_new_property(request: PropertySchemaInput, service: PropertyService = Depends(get_property_service))->ResponseSchema:

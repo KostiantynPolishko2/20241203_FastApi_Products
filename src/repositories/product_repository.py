@@ -1,6 +1,6 @@
 from models.product import Product
 from sqlalchemy.orm import Session, joinedload
-from infrastructures.product_exception import *
+from infrastructures.product_exceptions import *
 from infrastructures.weapons_exception import weaponsException404
 from schemas.product_schema import ProductSchema, ProductSchemaModify
 from abstracts.abc_product_repository import AbcProductRepository

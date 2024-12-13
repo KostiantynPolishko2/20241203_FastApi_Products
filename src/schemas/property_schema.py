@@ -3,10 +3,10 @@ from pydantic import BaseModel, Field, field_validator
 class PropertySchema(BaseModel):
     price: float = Field(gt=1000)
     is_available: bool = Field(default=True)
-    description: str | None = Field(max_length=100)
+    description: str | None = Field(max_length=200)
 
     @field_validator('description')
-    def set_category_lowercase(cls, value: str)->str:
+    def set_description_lowercase(cls, value: str)->str:
         if value:
             return value.lower()
         return value
