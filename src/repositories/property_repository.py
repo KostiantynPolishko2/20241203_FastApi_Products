@@ -3,7 +3,7 @@ from models.property import Property
 from abstracts.abc_property_repository import AbcPropertyRepository
 from schemas.property_schema import PropertySchema
 from infrastructures.weapons_exception import weaponsException404
-from infrastructures.property_exceptions import property_exc_404
+from infrastructures.property_exception import property_exc_404
 
 class PropertyRepository(AbcPropertyRepository):
 

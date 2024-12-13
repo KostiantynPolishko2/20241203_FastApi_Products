@@ -1,25 +1,18 @@
-from fastapi import APIRouter, Path, status
-from fastapi.params import Depends
+from fastapi import APIRouter, status
 from fastapi.responses import RedirectResponse
 from schemas.product_schema import (ProductSchemaPublic, ProductSchemaModify, ProductSchema,
                      ProductSchemaCard, ProductSchemaProperty)
 from schemas.property_schema import PropertySchemaInput
 from schemas.response_schema import ResponseSchema
-from typing import Annotated
-from depends import get_product_service
 import httpx
 from models.product import Product
-from services.product_service import ProductService
+from depends import model_params, product_service
 
 router = APIRouter(
     prefix='/product',
     tags=['Http request: Product'],
     responses={status.HTTP_400_BAD_REQUEST: {'description' : 'Bad Request'}}
 )
-
-model_params = Annotated[str, Path(description='weapons model', min_length=2)]
-product_service = Annotated[ProductService, Depends(get_product_service)]
-
 
 @router.get('/', response_class=RedirectResponse, include_in_schema=False)
 def docs():

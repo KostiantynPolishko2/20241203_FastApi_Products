@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import Depends, Path
 from typing import Annotated
 from databases.database import SessionLocal
 from repositories.weapons_repository import *
@@ -21,3 +21,7 @@ def get_product_service(weapons_repository: Annotated[SqlDbWeaponsRepository, De
 
 def get_property_service(weapons_repository: Annotated[SqlDbWeaponsRepository, Depends(get_sql_weapons_repository)]):
     return PropertyService(weapons_repository.property_repository)
+
+model_params = Annotated[str, Path(description='weapons model', min_length=2)]
+product_service = Annotated[ProductService, Depends(get_product_service)]
+id_params = Annotated[int, Path(description='id of weapons property', gt=0)]

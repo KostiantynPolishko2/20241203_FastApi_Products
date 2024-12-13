@@ -1,7 +1,7 @@
 from src.config import HandleServer
-from exception_handlers import *
-from routing.product_routers import router as product_router
-from routing.property_routers import router as property_router
+from handlers.exception_handler import *
+from routing.product_router import router as product_router
+from routing.property_router import router as property_router
 
 handleServer = HandleServer(title='Weapons')
 server = handleServer()
