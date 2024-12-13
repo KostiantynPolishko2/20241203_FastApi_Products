@@ -1,9 +1,15 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class PropertySchema(BaseModel):
     price: float = Field(gt=1000)
     is_available: bool = Field(default=True)
     description: str | None = Field(max_length=100)
+
+    @field_validator('description')
+    def set_category_lowercase(cls, value: str)->str:
+        if value:
+            return value.lower()
+        return value
 
 class PropertySchemaPublic(PropertySchema):
     id: int

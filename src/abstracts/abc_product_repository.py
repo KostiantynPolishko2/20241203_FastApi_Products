@@ -3,6 +3,7 @@ from models.product import Product
 from schemas.product_schema import ProductSchema, ProductSchemaModify
 
 class AbcProductRepository(ABC):
+
     @abstractmethod
     def get_all(self):
         raise NotImplementedError

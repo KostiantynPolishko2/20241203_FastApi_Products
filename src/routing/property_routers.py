@@ -1,17 +1,19 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Path
 from fastapi.responses import RedirectResponse
-
-from schemas.property_schema import PropertySchemaInput
+from schemas.property_schema import PropertySchemaInput, PropertySchema
 from schemas.response_schema import ResponseSchema
 from models.property import Property
 from depends import get_property_service
 from services.property_service import PropertyService
+from typing import Annotated
 
 router = APIRouter(
     prefix='/property',
     tags=['Http request: Property'],
     responses={status.HTTP_400_BAD_REQUEST: {'description' : 'Bad Request'}},
 )
+
+id_params = Annotated[int, Path(description='id of weapons property', gt=0)]
 
 def map_property_orm_schema_to_sql(_property: PropertySchemaInput, orm_model_class: type[Property])->Property:
     return orm_model_class(**_property.model_dump())
@@ -28,16 +30,8 @@ async def add_new_property(request: PropertySchemaInput, service: PropertyServic
 
     return ResponseSchema(code=status.HTTP_201_CREATED, status='created', property=f'property price {_property.price}')
 
-# @router.patch('/{id}', status_code=status.HTTP_202_ACCEPTED)
-# async def modify_property(id: int, request: PropertySchema, db: Session=Depends(get_db))->ResponseSchema:
-#
-#     _property = db.query(Property).filter(Property.id == id).first()
-#     if not _property:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'property id \'{id}\' is absent in db!')
-#
-#     request_update = request.model_dump(exclude_unset=True)
-#     for key, value in request_update.items():
-#         setattr(_property, key, value)
-#     db.commit()
-#
-#     return ResponseSchema(code=status.HTTP_202_ACCEPTED, status='updated', property=f'property id {_property.id}')
+@router.patch('/{id}', status_code=status.HTTP_202_ACCEPTED)
+async def modify_property(id: id_params, request: PropertySchema, service: PropertyService = Depends(get_property_service))->ResponseSchema:
+
+    service.s_modify_property(id, request)
+    return ResponseSchema(code=status.HTTP_202_ACCEPTED, status='updated', property=f'property id {request.id}')

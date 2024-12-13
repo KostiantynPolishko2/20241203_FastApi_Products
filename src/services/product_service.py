@@ -1,4 +1,3 @@
-from abstracts.abc_weapons_repository import AbcWeaponsRepository
 from models.product import Product
 from schemas.product_schema import ProductSchema, ProductSchemaModify
 from abstracts.abc_product_repository import AbcProductRepository

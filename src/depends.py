@@ -1,6 +1,5 @@
 from fastapi import Depends
 from typing import Annotated
-from sqlalchemy.orm import Session
 from databases.database import SessionLocal
 from repositories.weapons_repository import *
 from services.product_service import ProductService

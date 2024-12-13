@@ -9,11 +9,7 @@ from typing import Annotated
 from depends import get_product_service
 import httpx
 from models.product import Product
-
-from repositories.weapons_repository import *
-
 from services.product_service import ProductService
-
 
 router = APIRouter(
     prefix='/product',
@@ -41,7 +37,7 @@ def get_product_card_by_name(model: model_params, service: product_service)->Pro
 @router.post('/', status_code=status.HTTP_201_CREATED)
 async def add_new_product(request: ProductSchemaProperty, service: product_service)->ResponseSchema:
 
-    product = Product(model=request.model.lower(), category=request.category.lower())
+    product = Product(model=request.model, category=request.category)
     product_id = service.add_new_product(product)
     request_property = PropertySchemaInput.from_property(request.property, product_id)
 
