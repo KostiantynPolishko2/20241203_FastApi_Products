@@ -18,7 +18,7 @@ def get_sql_weapons_repository(db: Annotated[Session, Depends(get_db)]):
 
 
 def get_product_service(weapons_repository: Annotated[SqlDbWeaponsRepository, Depends(get_sql_weapons_repository)]):
-    return ProductService(weapons_repository)
+    return ProductService(weapons_repository.product_repository)
 
 def get_property_service(weapons_repository: Annotated[SqlDbWeaponsRepository, Depends(get_sql_weapons_repository)]):
-    return PropertyService(weapons_repository)
+    return PropertyService(weapons_repository.property_repository)

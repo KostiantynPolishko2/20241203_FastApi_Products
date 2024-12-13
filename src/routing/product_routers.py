@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, status
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
-from schemas.product_schema import (ProductSchemaPublic,
+from schemas.product_schema import (ProductSchemaPublic, ProductSchemaModify, ProductSchema,
                      ProductSchemaCard, ProductSchemaProperty)
 from schemas.property_schema import PropertySchemaInput
 from schemas.response_schema import ResponseSchema
 from typing import Annotated
 from depends import get_product_service
 import httpx
+from models.product import Product
 
 from repositories.weapons_repository import *
 

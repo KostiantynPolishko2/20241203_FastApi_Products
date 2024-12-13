@@ -1,30 +1,14 @@
 from abc import ABC, abstractmethod
-from models.product import Product
-from models.property import Property
-from schemas.product_schema import ProductSchema, ProductSchemaModify
+from abstracts.abc_product_repository import AbcProductRepository
+from abstracts.abc_property_repository import AbcPropertyRepository
 
 class AbcWeaponsRepository(ABC):
+    @property
     @abstractmethod
-    def get_all(self):
+    def product_repository(self)->AbcProductRepository:
         raise NotImplementedError
 
-    def get_product_card_by_name(self, model: str):
-        raise NotImplementedError
-
-    def delete_product_by_name(self, model: str):
-        raise NotImplementedError
-
-    def add_new_product(self, product: Product)->int:
-        raise NotImplementedError
-
-    def delete_product(self, product: Product):
-        raise NotImplementedError
-
-    def add_new_property(self, _property: Property):
-        raise NotImplementedError
-
-    def update_product(self, model: str, request: ProductSchema):
-        raise NotImplementedError
-
-    def modify_product(self, model: str, request: ProductSchemaModify):
+    @property
+    @abstractmethod
+    def property_repository(self)->AbcPropertyRepository:
         raise NotImplementedError
