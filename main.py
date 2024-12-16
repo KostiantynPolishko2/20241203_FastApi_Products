@@ -5,7 +5,7 @@ from redis import Redis, ConnectionPool
 
 app = FastAPI()
 
-pool = ConnectionPool(host='redis', port=6379, db=0)
+pool = ConnectionPool(host='127.0.0.1', port=6379, db=0)
 r = Redis(connection_pool=pool)
 
 
@@ -13,7 +13,7 @@ r = Redis(connection_pool=pool)
 def read_root():
     return RedirectResponse(url='/docs')
 
-@app.get("/items/{item_id}")
+@app.get("/items/{id}")
 def read_item(id: int, q: str = None):
 
     cached_value = r.get(f'item_{id}')
