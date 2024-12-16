@@ -1,13 +1,13 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import RedirectResponse
 import uvicorn
-from supplier_schema import SupplierSchema, SupplierSchemaResponse
+from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.responses import RedirectResponse
+from supplier_schema import SupplierSchema, SupplierSchemaInput, SupplierSchemaPublic
 from contextlib import asynccontextmanager
 from redis_config import redis_open, redis_close
-
-# pool = ConnectionPool(host='127.0.0.1', port=6379, db=0)
-# redis = Redis(connection_pool=pool)
-# Migrator().run()
+from sqlalchemy.orm import Session
+from typing import Annotated
+from supplier_model import Supplier
+from depends import get_db
 
 async def delete_suppliers():
     all_pks = SupplierSchema.all_pks()
@@ -22,37 +22,30 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+
 @app.get('/', response_class=RedirectResponse, include_in_schema=False)
 async def read_docs():
     return RedirectResponse(url='/docs')
 
+
 @app.get('/suppliers')
-async def read_suppliers()->list[SupplierSchemaResponse]:
+async def read_suppliers()->list[SupplierSchemaPublic]:
     all_pks = SupplierSchema.all_pks()
     suppliers = [SupplierSchema.get(pk) for pk in all_pks]
     return suppliers
 
-@app.get('/supplier/search/')
-async def read_supplier_by_name(name: str)->SupplierSchemaResponse:
-    # suppliers = SupplierSchema.find(SupplierSchema.name==name).all()
-    all_pks = SupplierSchema.all_pks()
 
-    suppliers = [SupplierSchema.get(pk) for pk in all_pks]
-    if not suppliers:
-        raise HTTPException(status_code=404, detail="Supplier not found")
+@app.post('/new-supplier', status_code=status.HTTP_201_CREATED)
+async def add_new_supplier(request: SupplierSchemaInput, db: Annotated[Session, Depends(get_db)])->SupplierSchemaPublic:
 
-    match_supplier = [supplier for supplier in suppliers if supplier.name.lower()==name.lower()][0]
-    if not match_supplier:
-        raise HTTPException(status_code=404, detail="Supplier not found")
-
-    return match_supplier
-
-@app.post('/new-supplier')
-async def add_new_supplier(name: str, budget: float):
-    supplier = SupplierSchema(name=name, budget=budget)
-    supplier.save()
-
-    return supplier.key().title()
+    supplier = Supplier(name=request.name, budget=request.budget)
+    try:
+        db.add(supplier)
+        db.commit()
+        db.refresh(supplier)
+        return supplier
+    except:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'failed request to db!')
 
 
 @app.get('/health')

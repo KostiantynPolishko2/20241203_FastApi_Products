@@ -5,3 +5,4 @@ jinja2
 python-multipart
 redis~=5.2.1
 pydantic~=2.10.3
+SQLAlchemy~=2.0.36

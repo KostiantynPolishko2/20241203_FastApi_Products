@@ -6,9 +6,9 @@ class SupplierSchema(HashModel):
     name: str=Field(index=True)
     budget: float=Field(ge=100)
 
-class SupplierSchemaResponse(BaseModel):
+class SupplierSchemaInput(BaseModel):
     name: str
     budget: float
 
-    # class Meta:
-    #     database = redis
+class SupplierSchemaPublic(SupplierSchemaInput):
+    id: int = Field(default=0)
