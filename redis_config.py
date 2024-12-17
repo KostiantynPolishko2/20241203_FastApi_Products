@@ -3,17 +3,13 @@ from redis_om import Migrator
 from redis import Redis, ConnectionPool
 from supplier_schema import SupplierSchema, SupplierSchemaPublic
 from sqlalchemy.orm import Session
-from supplier_model import Supplier
 import json
-
+from supplier_model import Supplier
 
 def redis_open(app: FastAPI)->None:
     pool = ConnectionPool(host='127.0.0.1', port=6379, db=0)
     app.state.redis = Redis(connection_pool=pool, decode_responses=True)
     Migrator().run()
-
-    # data = get_all_suppliers_from_db(db)
-    # app.state.redis.set('suppliers', json.dumps(data))
 
 
 def redis_close(app: FastAPI)->None:
@@ -26,9 +22,7 @@ async def delete_suppliers():
     [SupplierSchema.delete(pk) for pk in all_pks]
 
 
-def get_all_suppliers_from_db(db: Session)->list[type[SupplierSchemaPublic]]:
-    try:
-        data = db.query(Supplier).all()
-        return data
-    except:
-        return []
+def load_suppliers(app: FastAPI, db: Session)->None:
+    suppliers_sql = db.query(Supplier).all()
+    suppliers_pyd = [SupplierSchemaPublic.model_validate(supplier_sql).model_dump() for supplier_sql in suppliers_sql]
+    app.state.redis.set('suppliers', json.dumps(suppliers_pyd))

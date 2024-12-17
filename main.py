@@ -3,16 +3,22 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.responses import RedirectResponse
 from supplier_schema import SupplierSchemaInput, SupplierSchemaPublic
 from contextlib import asynccontextmanager
-from redis_config import redis_open, redis_close, delete_suppliers
+from redis_config import redis_open, redis_close, load_suppliers
 from sqlalchemy.orm import Session
 from typing import Annotated
 from supplier_model import Supplier
 from depends import get_db
 import json
+from database import SessionLocal
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    redis_open(app)
+    try:
+        redis_open(app)
+        with SessionLocal() as db:
+            load_suppliers(app, db)
+    except:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='failed cached loading')
     yield
     # await delete_suppliers()
     redis_close(app)
@@ -23,7 +29,7 @@ app = FastAPI(lifespan=lifespan)
 async def read_docs():
     return RedirectResponse(url='/docs')
 
-@app.get('/load-cache', status_code=status.HTTP_200_OK)
+@app.get('/load-cache', status_code=status.HTTP_200_OK, include_in_schema=False)
 async def load_cache(db: Annotated[Session, Depends(get_db)])->dict:
     try:
         cached_data = app.state.redis.get('suppliers')
