@@ -17,6 +17,7 @@ def redis_open(app: FastAPI)->None:
 
 
 def redis_close(app: FastAPI)->None:
+    app.state.redis.flushdb()
     app.state.redis.close()
 
 

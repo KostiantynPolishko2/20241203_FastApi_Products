@@ -19,24 +19,34 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-
 @app.get('/', response_class=RedirectResponse, include_in_schema=False)
 async def read_docs():
     return RedirectResponse(url='/docs')
 
-@app.get('/load-cache')
-async def load_cache(db: Annotated[Session, Depends(get_db)]):
-    suppliers_sql = db.query(Supplier).all()
-    suppliers_pyd = [SupplierSchemaPublic.model_validate(supplier_sql).model_dump() for supplier_sql in suppliers_sql]
-    data_json = json.dumps(suppliers_pyd)
-    app.state.redis.set('suppliers', data_json)
+@app.get('/load-cache', status_code=status.HTTP_200_OK)
+async def load_cache(db: Annotated[Session, Depends(get_db)])->dict:
+    try:
+        cached_data = app.state.redis.get('suppliers')
+        if not cached_data:
+            suppliers_sql = db.query(Supplier).all()
+            suppliers_pyd = [SupplierSchemaPublic.model_validate(supplier_sql).model_dump() for supplier_sql in suppliers_sql]
+            data_json = json.dumps(suppliers_pyd)
+            app.state.redis.set('suppliers', data_json)
+
+        return {'status': status.HTTP_200_OK}
+    except:
+        return {'status': status.HTTP_500_INTERNAL_SERVER_ERROR}
 
 @app.get('/suppliers')
-async def read_suppliers():
+async def read_suppliers()->list[SupplierSchemaPublic]:
     cached_data = app.state.redis.get('suppliers')
-    supplier = json.loads(cached_data)
+    if not cached_data:
+        return []
 
-    return supplier
+    suppliers_json = json.loads(cached_data)
+    suppliers = [SupplierSchemaPublic.model_validate(supplier_json) for supplier_json in suppliers_json]
+
+    return suppliers
 
 
 @app.post('/new-supplier', status_code=status.HTTP_201_CREATED)

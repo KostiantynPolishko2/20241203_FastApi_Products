@@ -19,6 +19,4 @@ class SupplierSchemaPublic(SupplierSchemaInput):
     id: int = Field(default=0)
 
     # Configure the model to allow validation from SQLAlchemy attributes
-    model_config = {
-        'from_attributes': True
-    }
+    model_config = {'from_attributes': True}
